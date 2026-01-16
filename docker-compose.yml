@@ -9,6 +9,11 @@ services:
       url: ${GHOST_URL:-https://yourdomain.com}
       NODE_ENV: ${NODE_ENV:-production}
 
+      # Trust the reverse proxy (Caddy) - CRITICAL for HTTPS behind proxy
+      # This prevents redirect loops when Ghost is behind Caddy
+      server__host: "0.0.0.0"
+      server__port: "2368"
+
       # Database - SQLite (default, no separate DB needed!)
       database__client: sqlite3
       database__connection__filename: /var/lib/ghost/content/data/ghost.db
