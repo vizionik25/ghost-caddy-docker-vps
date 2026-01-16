@@ -1,0 +1,69 @@
+services:
+  # Ghost Blog & Newsletter Platform
+  ghost:
+    image: ghost:5-alpine
+    container_name: ghost_app
+    restart: unless-stopped
+    environment:
+      # Basic Configuration
+      url: ${GHOST_URL:-https://yourdomain.com}
+      NODE_ENV: ${NODE_ENV:-production}
+
+      # Database - SQLite (default, no separate DB needed!)
+      database__client: sqlite3
+      database__connection__filename: /var/lib/ghost/content/data/ghost.db
+
+      # Mail Configuration (for newsletters)
+      mail__transport: ${MAIL_TRANSPORT:-Direct}
+      mail__from: ${MAIL_FROM:-noreply@example.com}
+      # SMTP Configuration (configure for production newsletters)
+      mail__options__host: ${SMTP_HOST:-}
+      mail__options__port: ${SMTP_PORT:-587}
+      mail__options__auth__user: ${SMTP_USER:-}
+      mail__options__auth__pass: ${SMTP_PASS:-}
+      mail__options__secureConnection: ${SMTP_SECURE:-false}
+    expose:
+      - "2368"
+    volumes:
+      - ghost_content:/var/lib/ghost/content
+      - ./content/themes:/var/lib/ghost/content/themes
+      - ./content/images:/var/lib/ghost/content/images
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost:2368" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - ghost_network
+
+  # Caddy Reverse Proxy - Automatic HTTPS
+  caddy:
+    image: caddy:2-alpine
+    container_name: ghost_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3 support
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - DOMAIN=${DOMAIN:-yourdomain.com}
+      - EMAIL=${ACME_EMAIL:-admin@yourdomain.com}
+    depends_on:
+      - ghost
+    networks:
+      - ghost_network
+
+volumes:
+  ghost_content:
+  caddy_data:
+  caddy_config:
+
+
+networks:
+  ghost_network:
+    driver: bridge

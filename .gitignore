@@ -1,0 +1,29 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# WordPress uploads (optional - uncomment if you don't want to track uploads)
+# wp-content/uploads/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Docker volumes (managed by Docker)
+db_data/
